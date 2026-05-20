@@ -1,5 +1,4 @@
 #!/bin/bash
-# 需要配后台持续静默执行操作
 
 
 set -euxo pipefail
