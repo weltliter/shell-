@@ -1,0 +1,27 @@
+Systemd 守护进程（常驻后台）
+操作步骤：
+在 /etc/systemd/system/ 目录下创建一个服务文件，例如 my_monitor.service：
+   [Unit]
+   Description=My System Monitor Script
+   After=network.target       # 必须等系统的基础网络服务（network.target）启动完毕后，再启动本服务
+
+   [Service]
+   Type=simple
+   User=root
+   ExecStart=/bin/bash /path/script.sh       # 执行的目标脚本，注意前面的bash必须为绝对路径
+   Restart=on-failure       # 重启策略，如果脚本因为意外报错（退出码不是 0）或者被系统/外部信号强制杀掉（比如 OOM 内存溢出被杀），systemd 会自动将其重启。如果是脚本正常执行完毕退出（退出码为 0），则不会重启。
+   RestartSec=5s
+   # 将输出静默处理，或者重定向到 syslog
+   StandardOutput=null       # 标准输出
+   StandardError=null       # 标准错误
+
+   [Install]
+   WantedBy=multi-user.target       # 执行 systemctl enable 时，系统会在 /etc/systemd/system/multi-user.target.wants/ 目录下创建一个指向本配置文件的软链接，从而实现每次系统启动进入多用户模式时，自动拉起脚本
+
+
+   
+重新加载 systemd 并启动服务：
+   systemctl daemon-reload
+   systemctl start my_monitor       # 启动脚本
+   systemctl enable my_monitor      # 设置开机自启
+   systemctl status my_monitor      # 查看后台静默运行状态
